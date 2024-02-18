@@ -27,6 +27,7 @@ parser.add_option('--FakeCondor'    , action="store",type="string",dest="FakeCon
 parser.add_option('--submitsh'    , action="store",type="string",dest="submitsh"          ,default=None)
 
 (options, args) = parser.parse_args()
+x509up_name = 'x509up_u%d' % os.getuid()
 
 class jdl_writter:
     def __init__(self, path, ds, filename = "submit.cmd"):
@@ -47,9 +48,9 @@ error={std_logs}/$(Cluster).$(Process).err
 notification=Never
 should_transfer_files = YES
 when_to_transfer_output = ON_EXIT
-x509userproxy=x509up_u12976
+x509userproxy=%s
 +MaxRuntime={MaxRuntime}
-        '''
+        ''' % x509up_name
         self.queue_templete = '''
 arguments={arguments}
 transfer_output_remaps={transfer_output_remaps}
@@ -284,8 +285,8 @@ if options.Condor:
     def additional(ds):
         return additional_(ds,options.AddtionalArgs)
     samples_toRun = [ds for ds in eval(options.DAS)().DAS]
-    Input = ["x509up_u12976","scripts/fetchFiles.py"]
-    os.system("cp /tmp/x509up_u12976 .")
+    Input = [x509up_name, "scripts/fetchFiles.py"]
+    os.system("cp /tmp/%s ." % x509up_name)
     Input = [ "%s/%s"%(os.getcwd(),i) for i in Input ]
     Condor_ = Condor(
         options.Filesjson, # Files.json
@@ -310,8 +311,8 @@ if options.FakeCondor:
     def additional(ds):
         return additional_(ds,options.AddtionalArgs)
     samples_toRun = [ds for ds in eval(options.DAS)().DAS]
-    Input = ["x509up_u12976","scripts/fetchFiles.py"]
-    os.system("cp /tmp/x509up_u12976 .")
+    Input = [x509up_name, "scripts/fetchFiles.py"]
+    os.system("cp /tmp/%s ." % x509up_name)
     Input = [ "%s/%s"%(os.getcwd(),i) for i in Input ]
     FakeCondorTest_ = FakeCondorTest(
         options.Filesjson, # Files.json
